@@ -2,16 +2,24 @@ const express = require('express');
 const router = express.Router();
 const conn = require('../db');
 
-router.post('/', (req, res) => {
-  const { nombre, email, telefono } = req.body;
-  conn.query(
-    'INSERT INTO clientes (nombre, email, telefono) VALUES (?, ?, ?)',
-    [nombre, email, telefono],
-    (err, result) => {
-      if (err) return res.status(500).send(err);
-      res.json({ status: 'success', id: result.insertId });
-    }
-  );
+router.get('/:id', (req, res) => {
+    const idParam = req.params.id;
+    console.log("App consultando cliente con ID:", idParam); // Esto aparecerá en tu terminal
+
+    conn.query('SELECT * FROM clientes WHERE id_cliente = ?', [idParam], (err, rows) => {
+        if (err) {
+            console.error("Error en SQL:", err);
+            return res.status(500).json(err);
+        }
+        
+        if (rows.length > 0) {
+            console.log("Cliente encontrado:", rows[0].nombre);
+            res.json(rows[0]); // IMPORTANTE: Solo enviamos el primer objeto
+        } else {
+            console.log("El ID no existe en la tabla clientes");
+            res.status(404).json({ msg: "No existe" });
+        }
+    });
 });
 
 router.get('/:id', (req, res) => {
