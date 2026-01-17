@@ -17,4 +17,5 @@ app.use('/productos', productosRoutes);
 app.use('/ventas', ventasRoutes);
 
 // 🚀 En modo serverless NO usamos app.listen
-module.exports = serverless(app);
+module.exports = require('serverless-http')(app);
+
