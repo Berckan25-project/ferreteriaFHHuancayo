@@ -14,6 +14,13 @@ router.post('/', (req, res) => {
   );
 });
 
+router.get('/:id', (req, res) => {
+  conn.query('SELECT * FROM clientes WHERE id_cliente = ?', [req.params.id], (err, rows) => {
+    if (err) return res.status(500).json(err);
+    rows.length > 0 ? res.json(rows[0]) : res.status(404).json({msg: "No existe"});
+  });
+});
+
 router.get('/buscar/:nombre', (req, res) => {
   const nombre = req.params.nombre;
   // Usamos % para que busque coincidencias en cualquier parte del nombre
