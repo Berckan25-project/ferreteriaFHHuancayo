@@ -14,6 +14,19 @@ router.post('/', (req, res) => {
   );
 });
 
+router.get('/buscar/:nombre', (req, res) => {
+  const nombre = req.params.nombre;
+  // Usamos % para que busque coincidencias en cualquier parte del nombre
+  conn.query(
+    'SELECT id_cliente, nombre, email, telefono FROM clientes WHERE nombre LIKE ?',
+    [`%${nombre}%`],
+    (err, rows) => {
+      if (err) return res.status(500).send(err);
+      res.json(rows);
+    }
+  );
+});
+
 router.get('/:id/historial', (req, res) => {
   const id = req.params.id;
   conn.query(
