@@ -2,6 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
+const serverless = require('serverless-http'); // 👈 Importamos serverless-http
 
 const clientesRoutes = require('./routes/clientes');
 const productosRoutes = require('./routes/productos');
@@ -15,8 +16,5 @@ app.use('/clientes', clientesRoutes);
 app.use('/productos', productosRoutes);
 app.use('/ventas', ventasRoutes);
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`Servidor corriendo en puerto ${PORT}`);
-});
-
+// 🚀 En modo serverless NO usamos app.listen
+module.exports = serverless(app);
