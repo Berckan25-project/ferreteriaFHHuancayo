@@ -16,6 +16,10 @@ app.use('/clientes', clientesRoutes);
 app.use('/productos', productosRoutes);
 app.use('/ventas', ventasRoutes);
 
+app.get('/', (req, res) => { 
+    res.send('API Ferretería funcionando 🚀'); 
+});
+
 // 🚀 En modo serverless NO usamos app.listen
 module.exports = require('serverless-http')(app);
 
