@@ -67,4 +67,44 @@ router.post('/guardar', (req, res) => {
     });
 });
 
+
+// --- 2. LISTAR TODAS LAS COTIZACIONES (Usado por el Administrador) ---
+router.get('/todas', (req, res) => {
+    // Unimos con la tabla usuarios para saber el nombre del cliente
+    const sql = `
+        SELECT c.id_cotizacion, u.nombre AS cliente, c.total, c.fecha 
+        FROM cotizaciones c
+        JOIN usuarios u ON c.id_usuario = u.id_usuario
+        ORDER BY c.fecha DESC
+    `;
+
+    db.query(sql, (err, rows) => {
+        if (err) {
+            console.error("Error al obtener cotizaciones:", err);
+            return res.status(500).json({ error: "Error al obtener lista" });
+        }
+        res.json(rows);
+    });
+});
+
+
+router.get('/detalle/:id', (req, res) => {
+    const idCotizacion = req.params.id;
+
+    const sql = `
+        SELECT d.id_producto, p.nombre, d.cantidad, d.precio_unitario, (d.cantidad * d.precio_unitario) AS subtotal
+        FROM detalles_cotizacion d
+        JOIN productos p ON d.id_producto = p.id_producto
+        WHERE d.id_cotizacion = ?
+    `;
+
+    db.query(sql, [idCotizacion], (err, rows) => {
+        if (err) {
+            console.error("Error al obtener detalles:", err);
+            return res.status(500).json({ error: "Error al obtener detalles" });
+        }
+        res.json(rows);
+    });
+});
+
 module.exports = router;
