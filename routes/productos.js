@@ -2,8 +2,7 @@ const express = require('express');
 const router = express.Router();
 const conn = require('../db');
 
-// 1. BUSCAR PRODUCTOS POR NOMBRE (Nuevo)
-// Se usa LIKE para encontrar coincidencias parciales (ej: "mar" encuentra "martillo")
+
 router.get('/buscar/:nombre', (req, res) => {
     const query = `%${req.params.nombre}%`;
     conn.query(
@@ -16,8 +15,7 @@ router.get('/buscar/:nombre', (req, res) => {
     );
 });
 
-// 2. OBTENER PRODUCTOS CON STOCK CRÍTICO (Nuevo)
-// Devuelve productos con menos de 5 unidades para reabastecimiento
+
 router.get('/reporte/critico', (req, res) => {
     conn.query(
         'SELECT * FROM productos WHERE stock < 5',
@@ -28,7 +26,7 @@ router.get('/reporte/critico', (req, res) => {
     );
 });
 
-// 3. OBTENER TODOS LOS PRODUCTOS (Opcional, útil para listas)
+
 router.get('/', (req, res) => {
     conn.query('SELECT * FROM productos', (err, rows) => {
         if (err) return res.status(500).send(err);

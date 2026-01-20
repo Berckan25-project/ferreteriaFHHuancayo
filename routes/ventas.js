@@ -6,7 +6,6 @@ const conn = require('../db');
 router.post('/', (req, res) => {
     const { id_cliente, productos } = req.body;
 
-    // 1. Validar disponibilidad de stock para todos los productos
     const promesasValidacion = productos.map(p => {
         return new Promise((resolve, reject) => {
             conn.query('SELECT nombre, stock FROM productos WHERE id_producto = ?', [p.id_producto], (err, rows) => {
@@ -22,7 +21,7 @@ router.post('/', (req, res) => {
 
     Promise.all(promesasValidacion)
         .then(() => {
-            // 2. Si el stock es suficiente, proceder con la venta
+            
             const total = productos.reduce((acc, p) => acc + (p.subtotal || 0), 0);
 
             conn.beginTransaction((err) => {
@@ -39,7 +38,7 @@ router.post('/', (req, res) => {
                         [idVenta, p.id_producto, p.cantidad, p.subtotal], (err) => {
                             if (err) return conn.rollback(() => res.status(500).send(err));
 
-                            // REDUCIR STOCK
+                            
                             conn.query('UPDATE productos SET stock = stock - ? WHERE id_producto = ?', [p.cantidad, p.id_producto], (err) => {
                                 if (err) return conn.rollback(() => res.status(500).send(err));
 

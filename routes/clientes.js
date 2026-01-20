@@ -4,7 +4,7 @@ const conn = require('../db');
 
 router.get('/:id', (req, res) => {
     const idParam = req.params.id;
-    console.log("App consultando cliente con ID:", idParam); // Esto aparecerá en tu terminal
+    console.log("App consultando cliente con ID:", idParam); 
 
     conn.query('SELECT * FROM clientes WHERE id_cliente = ?', [idParam], (err, rows) => {
         if (err) {
@@ -14,7 +14,7 @@ router.get('/:id', (req, res) => {
         
         if (rows.length > 0) {
             console.log("Cliente encontrado:", rows[0].nombre);
-            res.json(rows[0]); // IMPORTANTE: Solo enviamos el primer objeto
+            res.json(rows[0]); 
         } else {
             console.log("El ID no existe en la tabla clientes");
             res.status(404).json({ msg: "No existe" });
@@ -31,7 +31,7 @@ router.get('/:id', (req, res) => {
 
 router.get('/buscar/:nombre', (req, res) => {
   const nombre = req.params.nombre;
-  // Usamos % para que busque coincidencias en cualquier parte del nombre
+  
   conn.query(
     'SELECT id_cliente, nombre, email, telefono FROM clientes WHERE nombre LIKE ?',
     [`%${nombre}%`],
