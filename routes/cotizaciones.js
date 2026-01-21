@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const db = require('../db'); 
 
-
+// --- 1. GUARDAR NUEVA COTIZACIÓN ---
 router.post('/guardar', (req, res) => {
     const { id_usuario, total, detalles } = req.body;
 
@@ -11,15 +11,15 @@ router.post('/guardar', (req, res) => {
         return res.status(400).json({ error: "Datos incompletos" });
     }
 
-    
     db.beginTransaction((err) => {
         if (err) {
             console.error("Error Transaction:", err);
             return res.status(500).json({ error: "Error al iniciar transacción" });
         }
 
+        // AGREGAMOS 'estado' con valor 'Pendiente' por defecto
+        const queryCabecera = 'INSERT INTO cotizaciones (id_usuario, total, fecha, estado) VALUES (?, ?, NOW(), "Pendiente")';
         
-        const queryCabecera = 'INSERT INTO cotizaciones (id_usuario, total, fecha) VALUES (?, ?, NOW())';
         db.query(queryCabecera, [id_usuario, total], (err, result) => {
             if (err) {
                 return db.rollback(() => {
@@ -30,7 +30,6 @@ router.post('/guardar', (req, res) => {
 
             const idCotizacion = result.insertId; 
 
-          
             const valoresDetalles = detalles.map(d => [
                 idCotizacion, 
                 d.id_producto, 
@@ -38,8 +37,8 @@ router.post('/guardar', (req, res) => {
                 d.precio_unitario
             ]);
 
-            
             const queryDetalles = 'INSERT INTO detalles_cotizacion (id_cotizacion, id_producto, cantidad, precio_unitario) VALUES ?';
+            
             db.query(queryDetalles, [valoresDetalles], (errDet) => {
                 if (errDet) {
                     return db.rollback(() => {
@@ -48,7 +47,6 @@ router.post('/guardar', (req, res) => {
                     });
                 }
 
-                
                 db.commit((errCommit) => {
                     if (errCommit) {
                         return db.rollback(() => {
@@ -68,11 +66,16 @@ router.post('/guardar', (req, res) => {
 });
 
 
-// --- 2. LISTAR TODAS LAS COTIZACIONES (Usado por el Administrador) ---
+// --- 2. LISTAR TODAS LAS COTIZACIONES (Incluye la columna estado) ---
 router.get('/todas', (req, res) => {
-    // Unimos con la tabla usuarios para saber el nombre del cliente
+    // IMPORTANTE: Se agregó c.estado en el SELECT
     const sql = `
-        SELECT c.id_cotizacion, u.nombre AS cliente, c.total, c.fecha 
+        SELECT 
+            c.id_cotizacion, 
+            u.nombre AS cliente, 
+            c.total, 
+            c.fecha,
+            c.estado
         FROM cotizaciones c
         JOIN usuarios u ON c.id_usuario = u.id_usuario
         ORDER BY c.fecha DESC
@@ -83,16 +86,22 @@ router.get('/todas', (req, res) => {
             console.error("Error al obtener cotizaciones:", err);
             return res.status(500).json({ error: "Error al obtener lista" });
         }
-        res.json(rows);
+        res.json(rows); // Ahora Android recibirá el campo 'estado' y no fallará
     });
 });
 
 
+// --- 3. OBTENER DETALLE DE UNA COTIZACIÓN ---
 router.get('/detalle/:id', (req, res) => {
     const idCotizacion = req.params.id;
 
     const sql = `
-        SELECT d.id_producto, p.nombre, d.cantidad, d.precio_unitario, (d.cantidad * d.precio_unitario) AS subtotal
+        SELECT 
+            d.id_producto, 
+            p.nombre, 
+            d.cantidad, 
+            d.precio_unitario, 
+            (d.cantidad * d.precio_unitario) AS subtotal
         FROM detalles_cotizacion d
         JOIN productos p ON d.id_producto = p.id_producto
         WHERE d.id_cotizacion = ?
